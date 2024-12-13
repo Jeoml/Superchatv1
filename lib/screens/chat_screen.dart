@@ -20,6 +20,10 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  @override
+  void initState() {
+    super.initState();
+  }
   final TextEditingController _controller = TextEditingController();
   final List<dynamic> messages = [];
   final ScrollController _scrollcontroller = ScrollController();
@@ -52,16 +56,16 @@ class _ChatScreenState extends State<ChatScreen> {
       );
       return;
     }
-    String apiUrl = 'https://oriented-infinitely-calf.ngrok-free.app/upload';
+    Uri apiUrl = Uri.parse('http://suitable-jolly-falcon.ngrok-free.app/upload');
     try {
       _controller.text = 'Please Wait';
       String? token = await requestToken();
-      var request = http.MultipartRequest('POST', Uri.parse(apiUrl));
+      var request = http.MultipartRequest('POST', apiUrl);
       request.headers['Authorization'] = 'Bearer $token';
       request.files.add(await http.MultipartFile.fromPath(
         'files',
         _selectedFile!.files.single.path!,
-        contentType: MediaType('application', 'pdf'),
+        contentType: MediaType('application', _selectedFile!.files.single.extension == 'csv' ? 'csv' : 'pdf'),
       ));
       request.headers['Content-Type'] = "multipart/form-data";
       var response = await request.send();
@@ -152,15 +156,15 @@ class _ChatScreenState extends State<ChatScreen> {
                 foregroundColor: Color(Colors.blue.value),
               ),
             ),
-            // ElevatedButton(
-            //   onPressed: () {
-            //     Navigator.of(context).pop();
-            //   },
-            //   child: Text('Send'),
-            //   style: TextButton.styleFrom(
-            //     foregroundColor: Color(0xFFEC5B68),
-            //   ),
-            // ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Send'),
+              style: TextButton.styleFrom(
+                foregroundColor: Color(0xFFEC5B68),
+              ),
+            ),
           ],
         );
       },
@@ -238,7 +242,11 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Superchat'),
+        leading: IconButton(onPressed: () 
+        {
+          
+        }, icon: Icon(Icons.dehaze_rounded)),
+        title: const Text('Superchat LLC'),
       ),
       body: Column(
         children: [
@@ -254,46 +262,75 @@ class _ChatScreenState extends State<ChatScreen> {
           Column(
             children: [
               SlidingSegmentControl(
-                  onEndpointChanged: (String newEndpoint) {
-                    setState(() {
-                      currentEndpoint = newEndpoint;
-                    });
-                  },
-                ),
-              Padding(
-                padding: EdgeInsets.all(10),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _controller,
-                        decoration: const InputDecoration(
-                          hintText: 'Type your message...',
-                        ),
-                        onSubmitted: (_) => _sendMessage(),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: _sendMessage,
-                      icon: Icon(Icons.send),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) =>
-                              VoiceChatBot(controller: _controller),
-                        );
-                      },
-                      icon: const Icon(Icons.mic),
-                    ),
-                    IconButton(
-                      onPressed: () => _showPDFUploadDialog(),
-                      icon: const Icon(Icons.upload_file),
-                    ),
-                  ],
-                ),
+                onEndpointChanged: (String newEndpoint) {
+                  setState(() {
+                    currentEndpoint = newEndpoint;
+                  });
+                },
               ),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(25.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.2),
+                        spreadRadius: 1,
+                        blurRadius: 5,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _controller,
+                          decoration: InputDecoration(
+                            hintText: 'Type your message...',
+                            hintStyle: TextStyle(
+                              color: Colors.grey[400],
+                              fontSize: 16.0,
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 20.0,
+                              vertical: 12.0,
+                            ),
+                          ),
+                          onSubmitted: (_) => _sendMessage(),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: _sendMessage,
+                        icon: Icon(
+                          Icons.send_rounded,
+                          color: Theme.of(context).primaryColor,
+                          size: 24.0,
+                        ),
+                        splashRadius: 20.0,
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(right: 8.0),
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.attach_file_rounded,
+                            color: Theme.of(context).primaryColor,
+                            size: 24.0,
+                          ),
+                          splashRadius: 20.0,
+                          onPressed: () async {
+                            await _pickFile();
+                            await _uploadPDFFile();
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
             ],
           )
         ],

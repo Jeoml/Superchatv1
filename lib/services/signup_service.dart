@@ -10,7 +10,7 @@ Future<bool> signup(String email, String password, bool isLogin, String url) asy
       final response = await http.post(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'username': email, 'password': password}),
+        body: jsonEncode({'email': email, 'password': password}),
       );
 
       snackbarKey.currentState?.showSnackBar(

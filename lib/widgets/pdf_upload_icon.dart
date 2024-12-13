@@ -111,7 +111,7 @@ class _FileUploadButtonState extends State<FileUploadButton> {
 
       // Make API call
       final response = await Dio().post(
-        'https://oriented-infinitely-calf.ngrok-free.app/upload',
+        'http://suitable-jolly-falcon.ngrok-free.app/upload',
         data: formData,
       );
 

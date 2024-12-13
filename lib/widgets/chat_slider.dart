@@ -17,6 +17,27 @@ class _SlidingSegmentControlState extends State<SlidingSegmentControl> {
   int selectedSegment = 0;
   String endpoint = 'chat';
 
+  void _updateEndpoint(int? value) {
+    if (value == null) return;
+    
+    setState(() {
+      selectedSegment = value;
+      switch (value) {
+        case 0:
+          endpoint = 'chat';
+          break;
+        case 1:
+          endpoint = 'pdf';
+          break;
+        case 2:
+          endpoint = 'csv';
+          break;
+      }
+      print('Segment selected: $value, Endpoint: $endpoint'); // Debug print
+      widget.onEndpointChanged(endpoint); // Make sure this is called
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -38,14 +59,9 @@ class _SlidingSegmentControlState extends State<SlidingSegmentControl> {
                 children: {
                   0: buildSegment('Chat', 0),
                   1: buildSegment('PDF', 1),
+                  2: buildSegment('CSV', 2),
                 },
-                onValueChanged: (value) {
-                  setState(() {
-                    selectedSegment = value!;
-                    endpoint = value == 0 ? 'chat' : 'pdf';
-                    widget.onEndpointChanged(endpoint);
-                  });
-                },
+                onValueChanged: _updateEndpoint,
               ),
             ),
           ),

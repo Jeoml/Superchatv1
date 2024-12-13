@@ -7,7 +7,6 @@ import 'package:learnings1/services/token_service.dart';
 import 'package:path_provider/path_provider.dart';
 import './audio_player.dart';
 import './audio_recorder.dart';
-
 class VoiceChatBot extends StatefulWidget {
   final TextEditingController controller;
 
@@ -73,7 +72,7 @@ class _VoiceChatBotState extends State<VoiceChatBot> {
       String? token = await requestToken();
       final request = http.MultipartRequest(
         'POST',
-        Uri.parse('https://oriented-infinitely-calf.ngrok-free.app/transcript'),
+        Uri.parse('http://suitable-jolly-falcon.ngrok-free.app/transcript'),
       );
 
       request.headers.addAll({
@@ -102,7 +101,7 @@ class _VoiceChatBotState extends State<VoiceChatBot> {
       print("Sending user input to chat: $userInput"); // Log user input to chat
       String? token = await requestToken();
       final response = await http.post(
-        Uri.parse('https://oriented-infinitely-calf.ngrok-free.app/chat'),
+        Uri.parse('http://suitable-jolly-falcon.ngrok-free.app/chat'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -126,12 +125,12 @@ class _VoiceChatBotState extends State<VoiceChatBot> {
       String? token = await requestToken();
 
       final response = await http.post(
-        Uri.parse('https://oriented-infinitely-calf.ngrok-free.app/voice'),
+        Uri.parse('http://suitable-jolly-falcon.ngrok-free.app/voice'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: json.encode({'text': text}),
+        body: json.encode({'user_input': text}),
       );
 
       final directory = await getTemporaryDirectory();
