@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:learnings1/screens/auth_screen.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:learnings1/services/signup_service.dart';
+import 'package:learnings1/screens/login_blocscreen.dart';
+import 'package:learnings1/blocs/login_bloc/login_bloc.dart';
+import 'package:learnings1/blocs/signup_bloc/signup_bloc.dart';
+import 'package:learnings1/session/session_cubit.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import './app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
-// import 'package:learnings1/services/pdf_api_Service.dart';
+import '/widgets/splashscreen.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -17,25 +20,41 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      scaffoldMessengerKey: snackbarKey,
-      debugShowCheckedModeBanner: false,
-      title: 'Superchat',
-      theme: ThemeData(
-        primaryColor: MyTheme.kPrimaryColor,
-        colorScheme: ColorScheme.fromSwatch().copyWith(secondary: MyTheme.kAccentColor),
-        textTheme: GoogleFonts.poppinsTextTheme(
-          Theme.of(context).textTheme,
+    return MultiBlocProvider(
+      providers: [
+        // Provide session management
+        BlocProvider(create: (_) => SessionCubit()),
+
+        // Provide LoginBloc and link it to SessionCubit
+        BlocProvider(
+          create: (context) => LoginBloc(
+            sessionCubit: context.read<SessionCubit>(),
+          ),
         ),
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
+
+        // Provide SignupBloc
+        BlocProvider(create: (_) => SignupBloc()),
+      ],
+      child: MaterialApp(
+        // scaffoldMessengerKey: snackbarKey,
+        debugShowCheckedModeBanner: false,
+        title: 'Superchat',
+        theme: ThemeData(
+          primaryColor: MyTheme.kPrimaryColor,
+          colorScheme: ColorScheme.fromSwatch().copyWith(secondary: MyTheme.kAccentColor),
+          textTheme: GoogleFonts.poppinsTextTheme(
+            Theme.of(context).textTheme,
+          ),
+          primarySwatch: Colors.blue,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
+        ),
+        // Start with the splash screen
+        home: SplashScreen(),
       ),
-      home: const AuthScreen(),
     );
   }
 }

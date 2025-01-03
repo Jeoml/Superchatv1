@@ -20,13 +20,12 @@ class _AuthScreenState extends State<AuthScreen> {
   Future<void> _handleAuth() async {
     try {
       final success = await _authService.authenticate(
-        _emailController.text,
-        _passwordController.text,
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
         _isLogin,
       );
 
       if (success && mounted) {
-
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const ChatScreen()),
