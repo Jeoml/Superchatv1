@@ -7,7 +7,7 @@ import 'package:learnings1/session/session_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import './app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '/widgets/splashscreen.dart';
+import 'screens/splashscreen.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -53,7 +53,11 @@ class MyApp extends StatelessWidget {
           visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
         // Start with the splash screen
-        home: SplashScreen(),
+        initialRoute: '/splash',
+        routes: {
+          '/splash': (context) => SplashScreen(),
+          '/login': (context) => LoginScreen(),
+        },
       ),
     );
   }

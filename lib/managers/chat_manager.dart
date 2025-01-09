@@ -43,6 +43,7 @@ class ChatManager {
         ..body = jsonEncode({
           'user_input': text,
           'response_length': 'medium',
+            if (currentEndpoint == 'chat') 'target_lang': 'en',
         });
 
       print('Debug: Sending request...');

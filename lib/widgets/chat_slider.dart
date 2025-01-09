@@ -47,13 +47,13 @@ class _SlidingSegmentControlState extends State<SlidingSegmentControl> {
         children: [
           Container(
             decoration: BoxDecoration(
-              color: CupertinoColors.systemGrey6,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(8),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: CupertinoSlidingSegmentedControl<int>(
-                backgroundColor: CupertinoColors.systemGrey6,
+                backgroundColor: Colors.white,
                 thumbColor: CupertinoColors.white,
                 groupValue: selectedSegment,
                 children: {
@@ -79,7 +79,7 @@ class _SlidingSegmentControlState extends State<SlidingSegmentControl> {
           fontSize: 16,
           fontWeight: selectedSegment == index ? FontWeight.w600 : FontWeight.w400,
           color: selectedSegment == index 
-              ? CupertinoColors.activeBlue
+              ? CupertinoColors.black
               : CupertinoColors.systemGrey,
         ),
       ),

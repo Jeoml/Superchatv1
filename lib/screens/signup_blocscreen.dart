@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:learnings1/screens/signup_blocscreen.dart';
-import '../blocs/login_bloc/login_bloc.dart';
-import '../blocs/login_bloc/login_event.dart';
-import '../blocs/login_bloc/login_state.dart';
+import 'package:learnings1/blocs/signup_bloc/signup_bloc.dart';
+import 'package:learnings1/blocs/signup_bloc/signup_event.dart';
+import 'package:learnings1/blocs/signup_bloc/signup_state.dart';
+import 'package:learnings1/screens/login_blocscreen.dart';
 import '../screens/chat_screen.dart';
-import '../widgets/curved_design.dart';
 
-class LoginScreen extends StatelessWidget {
+class SignupScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  LoginScreen({Key? key}) : super(key: key);
+  SignupScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -21,16 +20,18 @@ class LoginScreen extends StatelessWidget {
         children: [
           // Custom background
           // ExactBackground(), // Ensure this widget is properly defined
-
           // Main content with BlocConsumer
-          BlocConsumer<LoginBloc, LoginState>(
+          BlocConsumer<SignupBloc, SignupState>(
             listener: (context, state) {
-              if (state is LoginSuccess) {
+              if (state is SignupSuccess) {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (_) => ChatScreen()),
+                  MaterialPageRoute(builder: (_) => LoginScreen()),
                 );
-              } else if (state is LoginFailure) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Great, let's login to start using Superchat!", style: TextStyle(color: Colors.black)), backgroundColor: Colors.greenAccent),
+                );
+              } else if (state is SignupFailure) {
                 // Navigator.pushReplacement(
                 //   context,
                 //   MaterialPageRoute(builder: (_) => ChatScreen()),
@@ -60,7 +61,7 @@ class LoginScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 30),
                       Text(
-                        "Hey there!\nWelcome back to\nSuperchat",
+                        "Hey there!\nLet's sign you up for\nSuperchat",
                         textAlign: TextAlign.left,
                         style: TextStyle(
                           color: Colors.black,
@@ -114,24 +115,24 @@ class LoginScreen extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-                            onPressed: state is LoginLoading
+                            onPressed: state is SignupLoading
                                 ? null
                                 : () {
                                     // Trigger the login event
-                                    BlocProvider.of<LoginBloc>(context).add(
-                                      LoginSubmitted(
+                                    BlocProvider.of<SignupBloc>(context).add(
+                                      SignupSubmitted(
                                         email: emailController.text,
                                         password: passwordController.text,
                                       ),
                                     );
                                   },
-                            child: state is LoginLoading
+                            child: state is SignupLoading
                                 ? const CircularProgressIndicator(
                                     valueColor: AlwaysStoppedAnimation<Color>(
                                         Colors.white),
                                   )
                                 : const Text(
-                                    'Login',
+                                    'Signup',
                                     style: TextStyle(
                                         color: Colors.white, fontSize: 18),
                                   ),
@@ -205,19 +206,19 @@ class LoginScreen extends StatelessWidget {
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => SignupScreen()),
+                              MaterialPageRoute(builder: (_) => LoginScreen()),
                             );
                           },
                             child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                              "Not an existing user?",
+                              "Already an existing user?",
                               style: TextStyle(color: Colors.grey),
                               ),
                               SizedBox(width: 5),
                               Text(
-                              "Proceed to SignUp",
+                              "Proceed to Login",
                               style: TextStyle(
                                 color: Colors.grey,
                                 decoration: TextDecoration.underline,

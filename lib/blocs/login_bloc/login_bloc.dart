@@ -31,7 +31,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           final Cookie = response.headers['set-cookie'];
           
           sessionCubit.saveToken(token); // Save the token to SessionCubit
-          emit(LoginSuccess(token: token));
+          emit(LoginSuccess(token: "token"));
+          //6/1/25
           chat(token, Cookie!);
         } else {
           emit(LoginFailure(error: response.reasonPhrase ?? 'Unknown error'));
