@@ -138,66 +138,65 @@ class LoginScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      // const SizedBox(height: 20),
                       // OR Divider
-                      const Center(
-                        child: Text(
-                          "───────── or continue with ──────────",
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      // Social Login Buttons
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // Google Button
-                          Expanded(
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.pink[900],
-                                minimumSize:
-                                    Size.fromHeight(60), // Added height
+                      // const Center(
+                      //   child: Text(
+                      //     "───────── or continue with ──────────",
+                      //     style: TextStyle(color: Colors.grey),
+                      //   ),
+                      // ),
+                      // const SizedBox(height: 20),
+                      // // Social Login Buttons
+                      // Row(
+                      //   mainAxisAlignment: MainAxisAlignment.center,
+                      //   children: [
+                      //     // Google Button
+                      //     Expanded(
+                      //       child: ElevatedButton(
+                      //         style: ElevatedButton.styleFrom(
+                      //           backgroundColor: Colors.pink[900],
+                      //           minimumSize:
+                      //               Size.fromHeight(60), // Added height
 
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                              onPressed: () {
-                                // Handle Google login
-                              },
-                              child: const Text(
-                                'Google',
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 16),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          // Apple Button
-                          Expanded(
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.pink[900],
-                                minimumSize:
-                                    Size.fromHeight(60), // Added height
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  side: const BorderSide(color: Colors.white),
-                                ),
-                              ),
-                              onPressed: () {
-                                // Handle Apple login
-                              },
-                              child: const Text(
-                                'Apple',
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 16),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                      //           shape: RoundedRectangleBorder(
+                      //             borderRadius: BorderRadius.circular(10),
+                      //           ),
+                      //         ),
+                      //         onPressed: () {
+                      //           // Handle Google login
+                      //         },
+                      //         child: const Text(
+                      //           'Google',
+                      //           style: TextStyle(
+                      //               color: Colors.white, fontSize: 16),
+                      //         ),
+                      //       ),
+                      //     ),
+                      //     const SizedBox(width: 10),
+                      //     // Apple Button
+                      //     Expanded(
+                      //       child: ElevatedButton(
+                      //         style: ElevatedButton.styleFrom(
+                      //           backgroundColor: Colors.pink[900],
+                      //           minimumSize:
+                      //               Size.fromHeight(60), // Added height
+                      //           shape: RoundedRectangleBorder(
+                      //             borderRadius: BorderRadius.circular(10),
+                      //           ),
+                      //         ),
+                      //         onPressed: () {
+                      //           // Handle Apple login
+                      //         },
+                      //         child: const Text(
+                      //           'Apple',
+                      //           style: TextStyle(
+                      //               color: Colors.white, fontSize: 16),
+                      //         ),
+                      //       ),
+                      //     ),
+                      //   ],
+                      // ),
                       const SizedBox(height: 30),
                       // Sign Up Redirect
                       Center(

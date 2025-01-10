@@ -7,18 +7,97 @@ import 'package:http_parser/http_parser.dart';
 import 'package:learnings1/blocs/voice_bloc/voice_bloc.dart';
 import 'package:learnings1/screens/lottieanimation.dart';
 import 'package:learnings1/screens/supportpage.dart';
+import 'package:learnings1/services/shaderanimation.dart';
 import 'package:learnings1/widgets/chat_slider.dart';
 import 'package:learnings1/widgets/curved_design.dart';
 import 'package:lottie/lottie.dart';
-// import 'package:typeset/typeset.dart';
 import 'dart:convert';
 import 'package:path/path.dart' as path;
-// import 'package:learnings1/widgets/document/file_picker.dart';
-// import 'package:learnings1/widgets/pdf_upload_icon.dart';
 import '../models/user_message.dart';
 import '../models/bot_message.dart';
 import '../services/token_service.dart';
 import 'package:learnings1/widgets/voice_chat/voice_index.dart';
+
+// --------- Added imports for clipboard and Markdown building --------- //
+import 'package:flutter/services.dart';
+import 'package:markdown/markdown.dart' as md;
+
+// A custom builder to handle code blocks with a copy button
+class CodeBlockBuilder extends MarkdownElementBuilder {
+  final BuildContext context;
+
+  CodeBlockBuilder(this.context);
+
+  @override
+  Widget visitElementAfter(md.Element element, TextStyle? preferredStyle) {
+    // Extract the raw text inside the code block
+    final codeText = element.textContent;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+      decoration: BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.circular(8.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 6.0,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8.0),
+        child: Stack(
+          children: [
+            // Scrollable code block
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: SelectableText(
+                  codeText,
+                  style: const TextStyle(
+                    fontFamily: 'Courier New',
+                    fontSize: 14.0,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ),
+            // Copy button overlay at the top right
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.black.withOpacity(0.5),
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.copy, size: 18, color: Colors.white70),
+                  tooltip: 'Copy code',
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: codeText));
+
+                    // Show a snack bar or other context-dependent UI
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('Code copied to clipboard!')),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({Key? key}) : super(key: key);
@@ -32,6 +111,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
   }
+
   final TextEditingController _controller = TextEditingController();
   final List<dynamic> messages = [];
   final ScrollController _scrollcontroller = ScrollController();
@@ -54,212 +134,138 @@ class _ChatScreenState extends State<ChatScreen> {
         ));
       }
     });
-    Future.delayed(Duration(milliseconds: 100), _scrollToBottom);
+    Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
   }
 
-//   Future<void> _uploadPDFFile() async {
-//   if (_selectedFile == null) {
-//     setState(() {
-//       _addMessage({
-//         'text': 'No file selected',
-//         'sender': 'bot'
-//       });
-//     });
-//     return;
-//   }
+  Future<void> _uploadPDFFile() async {
+    if (_selectedFile == null) return;
 
-//   final apiUrl = Uri.parse('https://suitable-jolly-falcon.ngrok-free.app/upload');
-  
-//   try {
-//     setState(() => _controller.text = 'Please Wait');
-    
-//     final token = await requestToken();
-//     if (token == null) {
-//       _handleAuthError();
-//       return;
-//     }
+    final apiUrl =
+        Uri.parse('https://suitable-jolly-falcon.ngrok-free.app/upload');
 
-//     final file = _selectedFile!.files.single;
-//     final request = http.MultipartRequest('POST', apiUrl);
-    
-//     request.headers['Authorization'] = 'Bearer $token';
-    
-//     final multipartFile = http.MultipartFile.fromBytes(
-//       'files',
-//       await file.bytes!,
-//       filename: file.name,
-//       contentType: MediaType('application', file.extension?.toLowerCase() ?? 'pdf'),
-//     );
+    try {
+      // Show loading indicator
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return Center(
+            child: SizedBox(
+              width: 250,
+              height: 250,
+              child: Image.asset('assets/lottie/blocks.gif'),
+            ),
+          );
+        },
+      );
 
-//     request.files.add(multipartFile);
+      final token = await requestToken();
+      if (token == null) {
+        // Hide loading indicator before showing error
+        if (mounted) Navigator.of(context).pop();
+        _handleAuthError();
+        return;
+      }
 
-//     final streamedResponse = await request.send();
-//     final response = await http.Response.fromStream(streamedResponse);
+      final file = _selectedFile!.files.single;
+      final bytes = await file.bytes;
+      if (bytes == null) {
+        // Hide loading indicator if no bytes found
+        if (mounted) Navigator.of(context).pop();
+        print('No bytes found in file');
+        return;
+      }
 
-//     if (!mounted) return;
+      var uri =
+          Uri.parse('https://suitable-jolly-falcon.ngrok-free.app/upload');
+      var request = http.MultipartRequest('POST', uri);
 
-//     if (response.statusCode == 200) {
-//       final jsonResponse = jsonDecode(response.body);
-//       setState(() {
-//         _addMessage({
-//           'text': 'File uploaded successfully',
-//           'sender': 'bot'
-//         });
-//       });
-//       _controller.clear();
-//     } else {
-//       print('Upload failed with status: ${response.statusCode}');
-//       print('Response body: ${response.body}');
-//       setState(() {
-//         _addMessage({
-//           'text': 'Upload failed: ${response.statusCode}',
-//           'sender': 'bot'
-//         });
-//       });
-//     }
-//   } catch (e) {
-//     print('Upload error: $e');
-//     if (!mounted) return;
-//     _handleUploadError(e);
-//   }
-// }
-
-Future<void> _uploadPDFFile() async {
-  if (_selectedFile == null) return;
-
-  final apiUrl = Uri.parse('https://suitable-jolly-falcon.ngrok-free.app/upload');
-  
-  try {
-    // Show loading indicator
-    if (!mounted) return;
-    // showDialog(
-    //   context: context,
-    //   barrierDismissible: false,
-    //   builder: (BuildContext context) {
-    //     return const Center(
-    //       child: CircularProgressIndicator(),
-    //     );
-    //   },
-    // );
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-      return Center(
-        child: SizedBox(
-        width: 250,
-        height: 250,
-        child: Image.asset('assets/lottie/blocks.gif'),
+      request.headers['Authorization'] = 'Bearer $token';
+      request.files.add(
+        http.MultipartFile(
+          'files',
+          Stream.value(bytes),
+          bytes.length,
+          filename: file.name,
         ),
       );
-      },
-    );
-    
-    final token = await requestToken();
-    if (token == null) {
-      // Hide loading indicator before showing error
+
+      final response = await request.send();
+      final responseStr = await response.stream.bytesToString();
+      print('Response status: ${response.statusCode}');
+      print('Response body: $responseStr');
+
+      // Hide loading indicator after getting response
       if (mounted) Navigator.of(context).pop();
-      _handleAuthError();
-      return;
-    }
 
-    final file = _selectedFile!.files.single;
-    final bytes = await file.bytes;
-    if (bytes == null) {
-      // Hide loading indicator if no bytes found
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _addMessage({
+            'text':
+                "file successfully uploaded in ${jsonDecode(responseStr)['time'].toStringAsFixed(2)} seconds",
+            'sender': 'bot'
+          });
+        });
+        _controller.clear();
+      } else {
+        setState(() {
+          _addMessage({
+            'text':
+                'Upload failed: ${response.statusCode}\nDetails: $responseStr',
+            'sender': 'bot'
+          });
+        });
+      }
+    } catch (e) {
       if (mounted) Navigator.of(context).pop();
-      print('No bytes found in file');
-      return;
+
+      print('Upload error: $e');
+      if (!mounted) return;
+      _handleUploadError(e);
     }
-
-    var uri = Uri.parse('https://suitable-jolly-falcon.ngrok-free.app/upload');
-    var request = http.MultipartRequest('POST', uri);
-
-    request.headers['Authorization'] = 'Bearer $token';
-    request.files.add(
-      http.MultipartFile(
-        'files',
-        Stream.value(bytes),
-        bytes.length,
-        filename: file.name,
-      ),
-    );
-
-    final response = await request.send();
-    final responseStr = await response.stream.bytesToString();
-    print('Response status: ${response.statusCode}');
-    print('Response body: $responseStr');
-
-    // Hide loading indicator after getting response
-    if (mounted) Navigator.of(context).pop();
-
-    if (!mounted) return;
-
-    if (response.statusCode == 200) {
-      setState(() {
-        _addMessage({
-          'text': "file successfully uploaded in ${jsonDecode(responseStr)['time'].toStringAsFixed(2)} seconds",
-          'sender': 'bot'
-        });
-      });
-      _controller.clear();
-    } else {
-      setState(() {
-        _addMessage({
-          'text': 'Upload failed: ${response.statusCode}\nDetails: $responseStr',
-          'sender': 'bot'
-        });
-      });
-    }
-  } catch (e) {
-    if (mounted) Navigator.of(context).pop();
-    
-    print('Upload error: $e');
-    if (!mounted) return;
-    _handleUploadError(e);
   }
-}
 
-void _handleUploadError(dynamic error) {
-  print('Error details: $error');
-  setState(() {
-    _addMessage({
-      'text': 'An error occurred during upload. Please try again.',
-      'sender': 'bot'
-    });
-  });
-}
-
-void _handleAuthError() {
-  setState(() {
-    _addMessage({
-      'text': 'Session expired. Please log in again to continue.',
-      'sender': 'bot'
-    });
-  });
-}
-
-Future<void> _pickFile() async {
-  try {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf', 'csv', 'wav'],
-      withData: true,
-    );
-    
-    if (result != null && result.files.isNotEmpty) {
-      setState(() => _selectedFile = result);
-    }
-  } catch (e) {
-    print('File picking error: $e');
+  void _handleUploadError(dynamic error) {
+    print('Error details: $error');
     setState(() {
       _addMessage({
-        'text': 'Error selecting file',
+        'text': 'An error occurred during upload. Please try again.',
         'sender': 'bot'
       });
     });
   }
-}
+
+  void _handleAuthError() {
+    setState(() {
+      _addMessage({
+        'text': 'Session expired. Please log in again to continue.',
+        'sender': 'bot'
+      });
+    });
+  }
+
+  Future<void> _pickFile() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'csv', 'wav'],
+        withData: true,
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        setState(() => _selectedFile = result);
+      }
+    } catch (e) {
+      print('File picking error: $e');
+      setState(() {
+        _addMessage({'text': 'Error selecting file', 'sender': 'bot'});
+      });
+    }
+  }
+
   void _sendMessage() async {
     final userText = _controller.text.trim();
     if (userText.isNotEmpty) {
@@ -268,7 +274,7 @@ Future<void> _pickFile() async {
       setState(() {
         messages.add(userMessage);
       });
-      Future.delayed(Duration(milliseconds: 100), _scrollToBottom);
+      Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
       _controller.clear();
       final responseText = await chatHandler(userText, currentEndpoint);
       final botMessage =
@@ -276,7 +282,7 @@ Future<void> _pickFile() async {
       setState(() {
         messages.add(botMessage);
       });
-      Future.delayed(Duration(milliseconds: 100), _scrollToBottom);
+      Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
     }
   }
 
@@ -290,26 +296,41 @@ Future<void> _pickFile() async {
     }
   }
 
-  Widget _buildMessage(dynamic message) {
+  // --------------- Modified this method to handle code blocks --------------- //
+  // Updated _buildMessage to accept BuildContext
+  Widget _buildMessage(BuildContext ctx, dynamic message) {
     if (message is UserMessage) {
       return Align(
         alignment: Alignment.centerRight,
         child: Padding(
           padding: const EdgeInsets.only(right: 12.0, left: 90),
           child: Container(
-            padding: EdgeInsets.all(10),
-            margin: EdgeInsets.symmetric(vertical: 5),
+            padding: const EdgeInsets.all(10),
+            margin: const EdgeInsets.symmetric(vertical: 5),
             decoration: BoxDecoration(
               color: Colors.black,
               borderRadius: BorderRadius.circular(10),
             ),
-            // child: Text(message.text, style: TextStyle(color: Colors.white)),
             child: MarkdownBody(
-            data: message.text,
-            styleSheet: MarkdownStyleSheet(
-            p: TextStyle(fontSize: 14, color: Colors.white),
+              data: message.text,
+              styleSheet: MarkdownStyleSheet(
+                p: const TextStyle(fontSize: 14, color: Colors.white),
+                code: const TextStyle(
+                  fontFamily: 'monospace',
+                  color: Colors.white,
+                ),
+                codeblockDecoration: BoxDecoration(
+                  color: Colors.grey[800],
+                  borderRadius: BorderRadius.circular(4.0),
+                ),
+              ),
+              // If you want inline code to be styled but NOT big blocks, remove 'code' here.
+              builders: {
+                // 'code': CodeBlockBuilder(ctx),
+                // Only triple backtick blocks
+                'pre': CodeBlockBuilder(ctx),
+              },
             ),
-          ),
           ),
         ),
       );
@@ -326,19 +347,32 @@ Future<void> _pickFile() async {
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: Colors.black),
             ),
-            // child: Text(message.text, style: TextStyle(color: Colors.black)),
-          child: MarkdownBody(
-            data: message.text,
-            styleSheet: MarkdownStyleSheet(
-            p: TextStyle(fontSize: 14, color: Colors.black),
+            child: MarkdownBody(
+              data: message.text,
+              styleSheet: MarkdownStyleSheet(
+                p: const TextStyle(fontSize: 14, color: Colors.black),
+                code: const TextStyle(
+                  fontFamily: 'monospace',
+                  color: Colors.black,
+                ),
+                codeblockDecoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(4.0),
+                ),
+              ),
+              builders: {
+                // For triple-backtick blocks
+                'pre': CodeBlockBuilder(ctx),
+              },
             ),
-          ),
           ),
         ),
       );
     }
     return const SizedBox.shrink();
   }
+
+  // ------------------------------------------------------------------------ //
 
   @override
   Widget build(BuildContext context) {
@@ -347,61 +381,67 @@ Future<void> _pickFile() async {
         backgroundColor: Colors.white,
         appBar: AppBar(
           leading: IconButton(
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => SupportPage())),
-            icon: Icon(Icons.dehaze_rounded),
+            onPressed: () => Navigator.push(context,
+                MaterialPageRoute(builder: (context) => SupportPage())),
+            icon: const Icon(Icons.dehaze_rounded),
           ),
-          title: const Text('Superchat LLC', style: TextStyle(color: Colors.black),),
+          title: const Text('Superchat LLC',
+              style: TextStyle(color: Colors.black)),
           backgroundColor: Colors.white,
-          elevation: 0, // Add this line to remove the shadow
-            actions: [
+          elevation: 0,
+          actions: [
             PopupMenuButton<String>(
               onSelected: (value) async {
-              if (value == 'clear_chat') {
-                final token = await requestToken();
-                if (token == null) {
-                _handleAuthError();
-                return;
-                }
-                try {
-                final response = await http.delete(
-                  Uri.parse('https://suitable-jolly-falcon.ngrok-free.app/clear_chat'),
-                  headers: {
-                  'Authorization': 'Bearer $token',
-                  },
-                );
+                if (value == 'clear_chat') {
+                  final token = await requestToken();
+                  if (token == null) {
+                    _handleAuthError();
+                    return;
+                  }
+                  try {
+                    final response = await http.delete(
+                      Uri.parse(
+                          'https://suitable-jolly-falcon.ngrok-free.app/clear_chat'),
+                      headers: {
+                        'Authorization': 'Bearer $token',
+                      },
+                    );
 
-                if (response.statusCode == 200) {
-                  final responseBody = jsonDecode(response.body);
-                  final message = responseBody['message'] ?? 'Chat history cleared successfully.';
-                  messages.clear();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(message)),
-                  );
-                  setState(() {
-                  messages.clear();
-                  });
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to clear chat history. Status: ${response.statusCode}')),
-                  );
+                    if (response.statusCode == 200) {
+                      final responseBody = jsonDecode(response.body);
+                      final message = responseBody['message'] ??
+                          'Chat history cleared successfully.';
+                      messages.clear();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(message)),
+                      );
+                      setState(() {
+                        messages.clear();
+                      });
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text(
+                                'Failed to clear chat history. Status: ${response.statusCode}')),
+                      );
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('An error occurred: $e')),
+                    );
+                  }
                 }
-                } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('An error occurred: $e')),
-                );
-                }
-              }
               },
               itemBuilder: (BuildContext context) {
-              return [
-                const PopupMenuItem<String>(
-                value: 'clear_chat',
-                child: Text('Clear Chat'),
-                ),
-              ];
+                return [
+                  const PopupMenuItem<String>(
+                    value: 'clear_chat',
+                    child: Text('Clear Chat'),
+                  ),
+                ];
               },
             ),
-            ],
+          ],
         ),
         body: Column(
           children: [
@@ -409,8 +449,9 @@ Future<void> _pickFile() async {
               child: ListView.builder(
                 controller: _scrollcontroller,
                 itemCount: messages.length,
+                // Pass BuildContext from itemBuilder
                 itemBuilder: (context, index) {
-                  return _buildMessage(messages[index]);
+                  return _buildMessage(context, messages[index]);
                 },
               ),
             ),
@@ -424,19 +465,12 @@ Future<void> _pickFile() async {
                   },
                 ),
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 12.0),
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(25.0),
-                      // boxShadow: [
-                      //   BoxShadow(
-                      //     color: Colors.grey.withOpacity(0.2),
-                      //     spreadRadius: 1,
-                      //     blurRadius: 5,
-                      //     offset: Offset(0, 2),
-                      //   ),
-                      // ],
                       border: Border.all(
                         color: Colors.black,
                       ),
@@ -468,26 +502,15 @@ Future<void> _pickFile() async {
                             color: Colors.black,
                             size: 24.0,
                           ),
-                          // splashRadius: 20.0,
                         ),
-                        // IconButton(
-                        //   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => LottieAnimation())),
-                        //   icon: const Icon(
-                        //     Icons.waves,
-                        //     color: Colors.black,
-                        //     size: 24.0,
-                        //   ),
-                        //   // splashRadius: 20.0,
-                        // ),
                         Padding(
-                          padding: EdgeInsets.only(right: 8.0),
+                          padding: const EdgeInsets.only(right: 8.0),
                           child: IconButton(
                             icon: const Icon(
                               Icons.attach_file_rounded,
                               color: Colors.black,
                               size: 24.0,
                             ),
-                            // splashRadius: 20.0,
                             onPressed: () async {
                               await _pickFile();
                               await _uploadPDFFile();
