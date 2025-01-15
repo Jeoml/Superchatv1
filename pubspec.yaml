@@ -50,6 +50,8 @@ dependencies:
   # typeset:
   flutter_markdown:
   # flutter_html:
+  highlight:
+  markdown:
 
 
   # The following adds the Cupertino Icons font to your application.

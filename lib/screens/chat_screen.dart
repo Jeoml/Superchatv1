@@ -126,11 +126,13 @@ class _ChatScreenState extends State<ChatScreen> {
         messages.add(UserMessage(
           text: message['text']!,
           timestamp: DateTime.now(),
+          imagePath: 'assets/user.png',
         ));
       } else {
         messages.add(BotMessage(
           text: message['text']!,
           timestamp: DateTime.now(),
+          imagePath: 'assets/logo.png',
         ));
       }
     });
@@ -206,7 +208,7 @@ class _ChatScreenState extends State<ChatScreen> {
           _addMessage({
             'text':
                 "file successfully uploaded in ${jsonDecode(responseStr)['time'].toStringAsFixed(2)} seconds",
-            'sender': 'bot'
+            'sender': 'bot',
           });
         });
         _controller.clear();
@@ -269,19 +271,44 @@ class _ChatScreenState extends State<ChatScreen> {
   void _sendMessage() async {
     final userText = _controller.text.trim();
     if (userText.isNotEmpty) {
-      final userMessage =
-          UserMessage(text: userText, timestamp: DateTime.now());
+      // 1. Add the user's message
+      final userMessage = UserMessage(
+        text: userText,
+        timestamp: DateTime.now(),
+        imagePath: 'assets/user.png',
+      );
       setState(() {
         messages.add(userMessage);
       });
       Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
+
+      // Clear the input field
       _controller.clear();
-      final responseText = await chatHandler(userText, currentEndpoint);
-      final botMessage =
-          BotMessage(text: responseText, timestamp: DateTime.now());
+
+      // 2. Add a temporary "bot is typing..." message
+      final BotMessage typingIndicator = BotMessage(
+        text: "Bot is typing...",
+        timestamp: DateTime.now(),
+        imagePath: 'assets/logo.png',
+      );
       setState(() {
+        messages.add(typingIndicator);
+      });
+
+      // 3. Call your chatHandler for the real response
+      final responseText = await chatHandler(userText, currentEndpoint);
+
+      // 4. Remove the "typing" indicator and add the real bot reply
+      setState(() {
+        messages.remove(typingIndicator);
+        final botMessage = BotMessage(
+          text: responseText,
+          timestamp: DateTime.now(),
+          imagePath: 'assets/logo.png',
+        );
         messages.add(botMessage);
       });
+
       Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
     }
   }
@@ -295,7 +322,6 @@ class _ChatScreenState extends State<ChatScreen> {
       );
     }
   }
-
   // --------------- Modified this method to handle code blocks --------------- //
   // Updated _buildMessage to accept BuildContext
   Widget _buildMessage(BuildContext ctx, dynamic message) {
