@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
@@ -30,8 +31,78 @@ class CodeBlockBuilder extends MarkdownElementBuilder {
 
   @override
   Widget visitElementAfter(md.Element element, TextStyle? preferredStyle) {
-    // Extract the raw text inside the code block
     final codeText = element.textContent;
+
+    // Basic syntax highlighting using regex
+    final regex = RegExp(
+      r'(\b(class|final|var|int|double|String|bool|const|extends|implements|return|if|else|for|while|switch|case|break|continue|new|void)\b)|' // Keywords
+      // r'(".*?"|\'.*?\')|' // Strings
+      r'(/\*[\s\S]*?\*/|//.*?$)|' // Comments
+      r'(\b\d+\b)|' // Numbers
+      r'([{}();,<>.\[\]])', // Operators and punctuation
+      multiLine: true,
+      caseSensitive: false,
+    );
+
+    List<TextSpan> spans = [];
+    int start = 0;
+
+    for (final match in regex.allMatches(codeText)) {
+      if (match.start > start) {
+        spans.add(TextSpan(
+          text: codeText.substring(start, match.start),
+          style: const TextStyle(color: Colors.white),
+        ));
+      }
+
+      String? style;
+      if (match.group(1) != null) {
+        style = 'keyword';
+      } else if (match.group(3) != null) {
+        style = 'string';
+      } else if (match.group(4) != null) {
+        style = 'comment';
+      } else if (match.group(5) != null) {
+        style = 'number';
+      } else if (match.group(6) != null) {
+        style = 'operator';
+      }
+
+      TextStyle textStyle;
+      switch (style) {
+        case 'keyword':
+          textStyle = const TextStyle(color: Colors.blue);
+          break;
+        case 'string':
+          textStyle = const TextStyle(color: Colors.green);
+          break;
+        case 'comment':
+          textStyle = const TextStyle(color: Colors.grey);
+          break;
+        case 'number':
+          textStyle = const TextStyle(color: Colors.orange);
+          break;
+        case 'operator':
+          textStyle = const TextStyle(color: Colors.purple);
+          break;
+        default:
+          textStyle = const TextStyle(color: Colors.white);
+      }
+
+      spans.add(TextSpan(
+        text: match.group(0),
+        style: textStyle,
+      ));
+
+      start = match.end;
+    }
+
+    if (start < codeText.length) {
+      spans.add(TextSpan(
+        text: codeText.substring(start),
+        style: const TextStyle(color: Colors.white),
+      ));
+    }
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
@@ -50,13 +121,12 @@ class CodeBlockBuilder extends MarkdownElementBuilder {
         borderRadius: BorderRadius.circular(8.0),
         child: Stack(
           children: [
-            // Scrollable code block
             Padding(
               padding: const EdgeInsets.all(12.0),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                child: SelectableText(
-                  codeText,
+                child: SelectableText.rich(
+                  TextSpan(children: spans),
                   style: const TextStyle(
                     fontFamily: 'Courier New',
                     fontSize: 14.0,
@@ -66,7 +136,6 @@ class CodeBlockBuilder extends MarkdownElementBuilder {
                 ),
               ),
             ),
-            // Copy button overlay at the top right
             Positioned(
               top: 8,
               right: 8,
@@ -83,10 +152,8 @@ class CodeBlockBuilder extends MarkdownElementBuilder {
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: codeText));
 
-                    // Show a snack bar or other context-dependent UI
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text('Code copied to clipboard!')),
+                      const SnackBar(content: Text('Code copied to clipboard!')),
                     );
                   },
                 ),
@@ -143,7 +210,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (_selectedFile == null) return;
 
     final apiUrl =
-        Uri.parse('https://suitable-jolly-falcon.ngrok-free.app/upload');
+        Uri.parse(dotenv.env['UPLOAD_API_URL']!);
 
     try {
       // Show loading indicator
@@ -156,7 +223,7 @@ class _ChatScreenState extends State<ChatScreen> {
             child: SizedBox(
               width: 250,
               height: 250,
-              child: Image.asset('assets/lottie/blocks.gif'),
+              child: Lottie.asset('assets/lottie/fileloading.json'),
             ),
           );
         },
@@ -180,10 +247,16 @@ class _ChatScreenState extends State<ChatScreen> {
       }
 
       var uri =
-          Uri.parse('https://suitable-jolly-falcon.ngrok-free.app/upload');
+          Uri.parse(dotenv.env['UPLOAD_API_URL']!);
       var request = http.MultipartRequest('POST', uri);
 
-      request.headers['Authorization'] = 'Bearer $token';
+      if (token != null) {
+        request.headers['Authorization'] = 'Bearer $token';
+      } else {
+        if (mounted) Navigator.of(context).pop();
+        _handleAuthError();
+        return;
+      }
       request.files.add(
         http.MultipartFile(
           'files',
@@ -334,8 +407,14 @@ class _ChatScreenState extends State<ChatScreen> {
             padding: const EdgeInsets.all(10),
             margin: const EdgeInsets.symmetric(vertical: 5),
             decoration: BoxDecoration(
-              color: Colors.black,
-              borderRadius: BorderRadius.circular(10),
+              color: Colors.teal,
+              borderRadius: BorderRadius.only(
+                topLeft: const Radius.circular(15),
+                topRight: const Radius.circular(15),
+                bottomLeft: const Radius.circular(15),
+                bottomRight: const Radius.circular(0),
+              ),
+              // border: Border.all(color: Colors.black),
             ),
             child: MarkdownBody(
               data: message.text,
@@ -346,14 +425,12 @@ class _ChatScreenState extends State<ChatScreen> {
                   color: Colors.white,
                 ),
                 codeblockDecoration: BoxDecoration(
-                  color: Colors.grey[800],
-                  borderRadius: BorderRadius.circular(4.0),
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(10.0),
                 ),
               ),
-              // If you want inline code to be styled but NOT big blocks, remove 'code' here.
               builders: {
-                // 'code': CodeBlockBuilder(ctx),
-                // Only triple backtick blocks
+                // For triple-backtick blocks
                 'pre': CodeBlockBuilder(ctx),
               },
             ),
@@ -369,9 +446,14 @@ class _ChatScreenState extends State<ChatScreen> {
             padding: const EdgeInsets.all(10),
             margin: const EdgeInsets.symmetric(vertical: 5),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.black),
+              color: Colors.green[100],
+              borderRadius: BorderRadius.only(
+                topLeft: const Radius.circular(15),
+                topRight: const Radius.circular(15),
+                bottomLeft: const Radius.circular(0),
+                bottomRight: const Radius.circular(15),
+              ),
+              // border: Border.all(color: Colors.black),
             ),
             child: MarkdownBody(
               data: message.text,
@@ -382,8 +464,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   color: Colors.black,
                 ),
                 codeblockDecoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(4.0),
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(10.0),
                 ),
               ),
               builders: {
@@ -424,10 +506,16 @@ class _ChatScreenState extends State<ChatScreen> {
                     _handleAuthError();
                     return;
                   }
+                  final clearChatApiUrl = dotenv.env['CLEAR_CHAT_API_URL'];
+                  if (clearChatApiUrl == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('CLEAR_CHAT_API_URL is not set in the environment variables.')),
+                    );
+                    return;
+                  }
                   try {
                     final response = await http.delete(
-                      Uri.parse(
-                          'https://suitable-jolly-falcon.ngrok-free.app/clear_chat'),
+                      Uri.parse(clearChatApiUrl),
                       headers: {
                         'Authorization': 'Bearer $token',
                       },

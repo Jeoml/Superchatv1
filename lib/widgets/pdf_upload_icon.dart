@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class FileUploadButton extends StatefulWidget {
   @override
@@ -111,7 +112,7 @@ class _FileUploadButtonState extends State<FileUploadButton> {
 
       // Make API call
       final response = await Dio().post(
-        'http://suitable-jolly-falcon.ngrok-free.app/upload',
+        dotenv.env['UPLOAD_API_URL']!,
         data: formData,
       );
 

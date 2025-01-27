@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:learnings1/services/token_service.dart';
 import 'dart:convert';
@@ -7,7 +8,7 @@ import 'login_state.dart';
 import '/session/session_cubit.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
-  static const String _loginUrl = 'https://suitable-jolly-falcon.ngrok-free.app/login';
+  static final String _loginUrl = dotenv.env['LOGIN_API_URL']!;
   final SessionCubit sessionCubit; // Add a dependency on SessionCubit
 
   LoginBloc({required this.sessionCubit}) : super(LoginInitial()) {

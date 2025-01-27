@@ -48,7 +48,7 @@ class _SupportPageState extends State<SupportPage> {
               //     try {
               //       final response = await http.delete(
               //         Uri.parse(
-              //             'https://suitable-jolly-falcon.ngrok-free.app/clear_chat'),
+              //             'CLEAR_CHAT_API_URL'),
               //             headers: {
               //               'Authorization': 'Bearer $token',
               //             },

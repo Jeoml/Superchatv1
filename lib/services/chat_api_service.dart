@@ -1,9 +1,10 @@
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:learnings1/services/token_service.dart';
 
 class ChatApiService {
-  static const String _baseUrl = "https://suitable-jolly-falcon.ngrok-free.app"; 
+  static final String _baseUrl = dotenv.env['BASE_URL']!; 
   static Future<String> fetchChatResponse(String userText) async {
     try {
       final response = await http.post(

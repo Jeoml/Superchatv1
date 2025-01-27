@@ -8,13 +8,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import './app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'screens/splashscreen.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  await Future.delayed(
-    Duration(seconds: 1),
-  );
+  await dotenv.load(fileName: ".env");
   FlutterNativeSplash.remove();
   runApp(const MyApp());
 }

@@ -1,5 +1,6 @@
 // import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -72,7 +73,7 @@ class _VoiceChatBotState extends State<VoiceChatBot> {
       String? token = await requestToken();
       final request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://suitable-jolly-falcon.ngrok-free.app/transcript'),
+        Uri.parse(dotenv.env['TRANSCRIPT_API_URL']!),
       );
 
       request.headers.addAll({
@@ -101,7 +102,7 @@ class _VoiceChatBotState extends State<VoiceChatBot> {
       print("Sending user input to chat: $userInput"); // Log user input to chat
       String? token = await requestToken();
       final response = await http.post(
-        Uri.parse('http://suitable-jolly-falcon.ngrok-free.app/chat'),
+        Uri.parse(dotenv.env['CHAT_API_URL']!),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -125,7 +126,7 @@ class _VoiceChatBotState extends State<VoiceChatBot> {
       String? token = await requestToken();
 
       final response = await http.post(
-        Uri.parse('http://suitable-jolly-falcon.ngrok-free.app/voice'),
+        Uri.parse(dotenv.env['VOICE_API_URL']!),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

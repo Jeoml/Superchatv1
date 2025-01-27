@@ -52,6 +52,7 @@ dependencies:
   # flutter_html:
   highlight:
   markdown:
+  flutter_dotenv:
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -91,6 +92,7 @@ flutter:
     - assets/lottie/blocks.gif
     - assets/shaders/rgb.frag
     - assets/shaders/blur.frag
+    - .env
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

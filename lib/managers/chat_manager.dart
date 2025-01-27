@@ -2,27 +2,28 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:learnings1/services/user_details.dart';
 import 'package:path/path.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ChatManager {
   static Future<String> chat(String token, String cookie, String text, String currentEndpoint) async {
     final client = http.Client();
     try {
-      const urlChat = 'https://suitable-jolly-falcon.ngrok-free.app/chat';
-      const urlPdf = 'https://suitable-jolly-falcon.ngrok-free.app/ask_pdf';
-      const urlCSV = 'https://suitable-jolly-falcon.ngrok-free.app/ask_csv';
+      final urlChat = dotenv.env['CHAT_API_URL'];
+      final urlPdf = dotenv.env['PDF_API_URL'];
+      final urlCSV = dotenv.env['CSV_API_URL'];
       String url;
       
       print('Debug: Current endpoint - $currentEndpoint');
       
       switch (currentEndpoint) {
         case 'chat':
-          url = urlChat;
+          url = urlChat!;
           break;
         case 'pdf':
-          url = urlPdf;
+          url = urlPdf!;
           break;
         case 'csv':
-          url = urlCSV;
+          url = urlCSV!;
           break;
         default:
           print('Debug: Invalid endpoint - $currentEndpoint');

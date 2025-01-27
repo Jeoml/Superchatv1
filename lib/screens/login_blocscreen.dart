@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:learnings1/screens/signup_blocscreen.dart';
+import 'package:lottie/lottie.dart';
 import '../blocs/login_bloc/login_bloc.dart';
 import '../blocs/login_bloc/login_event.dart';
 import '../blocs/login_bloc/login_state.dart';
@@ -126,9 +127,11 @@ class LoginScreen extends StatelessWidget {
                                     );
                                   },
                             child: state is LoginLoading
-                                ? const CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white),
+                                ? Lottie.asset(
+                                    'assets/lottie/loader.json',
+                                    width: 50,
+                                    height: 50,
+                                    fit: BoxFit.cover,
                                   )
                                 : const Text(
                                     'Login',
@@ -207,23 +210,23 @@ class LoginScreen extends StatelessWidget {
                               MaterialPageRoute(builder: (_) => SignupScreen()),
                             );
                           },
-                            child: Row(
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                              "Not an existing user?",
-                              style: TextStyle(color: Colors.grey),
+                                "Not an existing user?",
+                                style: TextStyle(color: Colors.grey),
                               ),
                               SizedBox(width: 5),
                               Text(
-                              "Proceed to SignUp",
-                              style: TextStyle(
-                                color: Colors.grey,
-                                decoration: TextDecoration.underline,
-                              ),
+                                "Proceed to SignUp",
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  decoration: TextDecoration.underline,
+                                ),
                               ),
                             ],
-                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 30),

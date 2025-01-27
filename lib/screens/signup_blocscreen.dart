@@ -4,7 +4,7 @@ import 'package:learnings1/blocs/signup_bloc/signup_bloc.dart';
 import 'package:learnings1/blocs/signup_bloc/signup_event.dart';
 import 'package:learnings1/blocs/signup_bloc/signup_state.dart';
 import 'package:learnings1/screens/login_blocscreen.dart';
-import '../screens/chat_screen.dart';
+// import '../screens/chat_screen.dart';
 
 class SignupScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
@@ -50,7 +50,7 @@ class SignupScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 80),
-                      Center(
+                      const Center(
                         child: Text(
                           "Superchat LLC",
                           style: TextStyle(
@@ -60,7 +60,7 @@ class SignupScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 30),
-                      Text(
+                      const Text(
                         "Hey there!\nLet's sign you up for\nSuperchat",
                         textAlign: TextAlign.left,
                         style: TextStyle(
@@ -73,14 +73,14 @@ class SignupScreen extends StatelessWidget {
                       const SizedBox(height: 40),
                       _buildInputField(
                         label: 'Email',
-                        hint: 'samplemailsuperchat@gmail.com',
+                        hint: 'Please enter your Mail ID',
                         controller: emailController,
                         obscureText: false,
                       ),
                       const SizedBox(height: 10),
                       _buildInputField(
                         label: 'Password',
-                        hint: 'password@Superchat1',
+                        hint: 'Please enter your password',
                         controller: passwordController,
                         obscureText: true,
                       ),

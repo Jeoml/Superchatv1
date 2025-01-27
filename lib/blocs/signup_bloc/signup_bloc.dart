@@ -1,11 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'signup_event.dart';
 import 'signup_state.dart';
 
 class SignupBloc extends Bloc<SignupEvent, SignupState> {
-  static const String _signupUrl = 'https://suitable-jolly-falcon.ngrok-free.app/signup';
+  static final String _signupUrl = dotenv.env['SIGNUP_API_URL']!;
 
   SignupBloc() : super(SignupInitial()) {
     on<SignupSubmitted>((event, emit) async {
