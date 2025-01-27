@@ -579,60 +579,63 @@ class _ChatScreenState extends State<ChatScreen> {
                   },
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 12.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                   child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(25.0),
-                      border: Border.all(
-                        color: Colors.black,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(25.0),
+                    boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 6.0,
+                      offset: const Offset(0, 2),
+                    ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                    Expanded(
+                      child: TextField(
+                      controller: _controller,
+                      decoration: const InputDecoration(
+                        hintText: 'Type your message...',
+                        hintStyle: TextStyle(
+                        color: Colors.black54,
+                        fontSize: 16.0,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(
+                        horizontal: 20.0,
+                        vertical: 12.0,
+                        ),
+                      ),
+                      onSubmitted: (_) => _sendMessage(),
                       ),
                     ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _controller,
-                            decoration: const InputDecoration(
-                              hintText: 'Type your message...',
-                              hintStyle: TextStyle(
-                                color: Colors.black54,
-                                fontSize: 16.0,
-                              ),
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 20.0,
-                                vertical: 12.0,
-                              ),
-                            ),
-                            onSubmitted: (_) => _sendMessage(),
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: _sendMessage,
-                          icon: const Icon(
-                            Icons.send_rounded,
-                            color: Colors.black,
-                            size: 24.0,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: IconButton(
-                            icon: const Icon(
-                              Icons.attach_file_rounded,
-                              color: Colors.black,
-                              size: 24.0,
-                            ),
-                            onPressed: () async {
-                              await _pickFile();
-                              await _uploadPDFFile();
-                            },
-                          ),
-                        ),
-                      ],
+                    IconButton(
+                      onPressed: _sendMessage,
+                      icon: const Icon(
+                      Icons.send_rounded,
+                      color: Colors.black,
+                      size: 24.0,
+                      ),
                     ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: IconButton(
+                      icon: const Icon(
+                        Icons.attach_file_rounded,
+                        color: Colors.black,
+                        size: 24.0,
+                      ),
+                      onPressed: () async {
+                        await _pickFile();
+                        await _uploadPDFFile();
+                      },
+                      ),
+                    ),
+                    ],
+                  ),
                   ),
                 )
               ],

@@ -79,7 +79,7 @@ class _SlidingSegmentControlState extends State<SlidingSegmentControl> {
           fontSize: 16,
           fontWeight: selectedSegment == index ? FontWeight.w600 : FontWeight.w400,
           color: selectedSegment == index 
-              ? CupertinoColors.black
+              ? CupertinoColors.black 
               : CupertinoColors.systemGrey,
         ),
       ),
