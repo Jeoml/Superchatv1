@@ -342,49 +342,105 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _sendMessage() async {
-    final userText = _controller.text.trim();
-    if (userText.isNotEmpty) {
-      // 1. Add the user's message
-      final userMessage = UserMessage(
-        text: userText,
-        timestamp: DateTime.now(),
-        imagePath: 'assets/user.png',
-      );
-      setState(() {
-        messages.add(userMessage);
-      });
-      Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
+  final userText = _controller.text.trim();
+  if (userText.isNotEmpty) {
+    print('=== DEBUG: _sendMessage START ===');
+    print('Debug: User text: "$userText"');
+    print('Debug: Current endpoint: "$currentEndpoint"');
+    
+    // 1. Add the user's message
+    final userMessage = UserMessage(
+      text: userText,
+      timestamp: DateTime.now(),
+      imagePath: 'assets/user.png',
+    );
+    setState(() {
+      messages.add(userMessage);
+    });
+    
+    // Clear the input field
+    _controller.clear();
+    
+    // Scroll to bottom after adding user message
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
 
-      // Clear the input field
-      _controller.clear();
+    // 2. Add a temporary "bot is typing..." message
+    final BotMessage typingIndicator = BotMessage(
+      text: "Bot is typing...",
+      timestamp: DateTime.now(),
+      imagePath: 'assets/logo.png',
+    );
+    setState(() {
+      messages.add(typingIndicator);
+    });
 
-      // 2. Add a temporary "bot is typing..." message
-      final BotMessage typingIndicator = BotMessage(
-        text: "Bot is typing...",
-        timestamp: DateTime.now(),
-        imagePath: 'assets/logo.png',
-      );
-      setState(() {
-        messages.add(typingIndicator);
-      });
+    // Scroll to bottom after adding typing indicator
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
 
+    try {
       // 3. Call your chatHandler for the real response
+      print('Debug: About to call chatHandler...');
       final responseText = await chatHandler(userText, currentEndpoint);
+      print('Debug: chatHandler returned: "$responseText"');
 
-      // 4. Remove the "typing" indicator and add the real bot reply
-      setState(() {
-        messages.remove(typingIndicator);
-        final botMessage = BotMessage(
-          text: responseText,
-          timestamp: DateTime.now(),
-          imagePath: 'assets/logo.png',
-        );
-        messages.add(botMessage);
-      });
+      // 4. Check if widget is still mounted before calling setState
+      if (mounted) {
+        print('Debug: Widget is mounted, updating UI...');
+        setState(() {
+          // Remove the typing indicator
+          messages.removeWhere((msg) => msg == typingIndicator);
+          
+          // Add the real bot reply
+          final botMessage = BotMessage(
+            text: responseText,
+            timestamp: DateTime.now(),
+            imagePath: 'assets/logo.png',
+          );
+          messages.add(botMessage);
+        });
+        print('Debug: UI updated successfully');
 
-      Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
+        // Scroll to bottom after adding bot response
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _scrollToBottom();
+        });
+      } else {
+        print('Debug: Widget is not mounted, skipping UI update');
+      }
+      
+      print('=== DEBUG: _sendMessage END SUCCESS ===');
+    } catch (e, stackTrace) {
+      print('=== DEBUG: _sendMessage ERROR ===');
+      print('Debug: Error type: ${e.runtimeType}');
+      print('Debug: Error message: $e');
+      print('Debug: StackTrace: $stackTrace');
+      
+      // Handle error - remove typing indicator and show error message
+      if (mounted) {
+        setState(() {
+          messages.removeWhere((msg) => msg == typingIndicator);
+          
+          final errorMessage = BotMessage(
+            text: "Error: $e\n\nPlease check the console for more details and try again.",
+            timestamp: DateTime.now(),
+            imagePath: 'assets/logo.png',
+          );
+          messages.add(errorMessage);
+        });
+
+        // Scroll to bottom after adding error message
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _scrollToBottom();
+        });
+      }
+      print('=== DEBUG: _sendMessage END ERROR ===');
     }
   }
+}
 
   void _scrollToBottom() {
     if (_scrollcontroller.hasClients) {

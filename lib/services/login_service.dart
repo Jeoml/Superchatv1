@@ -23,9 +23,12 @@ Future<bool> login(String email, String password, bool isLogin, String url,
   String? receivedToken;
   try {
     final response = await http.post(
-      Uri.parse(url+'/'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': email, 'password': password}),
+      Uri.parse(url + '/'),
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: {
+        'email': email,
+        'password': password,
+      },
     );
     if (response.statusCode == 200) {
       if(response.body.trim().isEmpty) {
@@ -42,8 +45,8 @@ Future<bool> login(String email, String password, bool isLogin, String url,
       String combinedCookies = cookies ?? '';
       
       var jsonResponse = jsonDecode(response.body.trim());
-      if (jsonResponse.containsKey('token')) {
-        String token = jsonResponse['token']!.split(' ').last;
+      if (jsonResponse.containsKey('access_token')) {
+        String token = jsonResponse['access_token']!.split(' ').last;
         receivedToken = token;
         storeDetails(email.trim(), receivedToken, password.trim());
         await setChat(receivedToken, combinedCookies);

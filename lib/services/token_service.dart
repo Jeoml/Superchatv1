@@ -13,9 +13,6 @@ Future<String> chatHandler(String userText, String currentEndpoint) async {
   if (token == null) {
     throw Exception('Invalid Access. Login is required');
   }
-  if (cookie == null) {
-    throw Exception('Invalid Access. Login is required');
-  }
   userMessage = userText;
   return ChatManager.chat(token!, cookie!, userText, currentEndpoint);
 }
