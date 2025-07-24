@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'login_event.dart';
 import 'login_state.dart';
 import '/session/session_cubit.dart';
+import '../../services/token_service.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
   static final String _loginUrl = dotenv.env['LOGIN_API_URL']!;
@@ -31,13 +32,13 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         if (response.statusCode == 200) {
           final responseJson = json.decode(response.body);
           final token = responseJson['access_token'];
-          final cookie = response.headers['set-cookie'];
+          final cookie = response.headers['set-cookie'] ?? '';
 
-          sessionCubit.saveToken(token); // Save token
-          emit(LoginSuccess(token: token)); // Return actual token
-
-          // Optional: Call chat or other API here
-          // await chat(token, cookie); // Uncomment if implemented
+          // Save token to session and persistent storage
+          sessionCubit.saveToken(token);
+          await setChat(token, cookie); // Store token persistently
+          
+          emit(LoginSuccess(token: token));
         } else {
           emit(LoginFailure(error: response.reasonPhrase ?? 'Login failed'));
         }

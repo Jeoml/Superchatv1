@@ -11,3 +11,8 @@ class SignupFailure extends SignupState {
 
   SignupFailure({required this.error});
 }
+
+class SignupAndLoginSuccess extends SignupState {
+  final String token;
+  SignupAndLoginSuccess({required this.token});
+}

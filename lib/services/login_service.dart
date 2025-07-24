@@ -1,99 +1,58 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:learnings1/services/signup_service.dart';
-import 'package:learnings1/services/token_service.dart';
 import 'package:learnings1/services/user_details.dart';
+import 'package:learnings1/services/token_service.dart';
 
-Future<bool> login(String email, String password, bool isLogin, String url,
-    {int retryCount = 0}) async {
-  const maxRetries = 3;
+final GlobalKey<ScaffoldMessengerState> snackbarKey = GlobalKey<ScaffoldMessengerState>();
 
-  if (retryCount >= maxRetries) {
-    snackbarKey.currentState?.showSnackBar(
-      const SnackBar(
-        content: Text('Maximum retry attempts reached'),
-        backgroundColor: Colors.red,
-      ),
-    );
-    // debug false
-    return false;
-  }
-
-  String? receivedToken;
+Future<bool> login(String email, String password, String url) async {
   try {
     final response = await http.post(
-      Uri.parse(url + '/'),
+      Uri.parse(url),
       headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: {
-        'email': email,
-        'password': password,
-      },
+      body: 'email=${Uri.encodeComponent(email)}&password=${Uri.encodeComponent(password)}',
     );
-    if (response.statusCode == 200) {
-      if(response.body.trim().isEmpty) {
-        snackbarKey.currentState?.showSnackBar(
-          const SnackBar(
-            content: Text('Empty Response received from server'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return true;
-      }
-      
-      String? cookies = response.headers['set-cookie'];
-      String combinedCookies = cookies ?? '';
-      
-      var jsonResponse = jsonDecode(response.body.trim());
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      var jsonResponse = jsonDecode(response.body);
       if (jsonResponse.containsKey('access_token')) {
-        String token = jsonResponse['access_token']!.split(' ').last;
-        receivedToken = token;
-        storeDetails(email.trim(), receivedToken, password.trim());
-        await setChat(receivedToken, combinedCookies);
-        
+        String token = jsonResponse['access_token'];
+        await storeDetails(email.trim(), token, password.trim());
+        print('Debug: Token received - $token');
+        await setChat(token, ''); // Ensure chatHandler uses the latest token
         snackbarKey.currentState?.showSnackBar(
           const SnackBar(
-            content: Text('LogIn Succesful'),
+            content: Text('Login Successful'),
             backgroundColor: Colors.green,
           ),
         );
         return true;
       } else {
-        return true;
-        // debug false
+        snackbarKey.currentState?.showSnackBar(
+          const SnackBar(
+            content: Text('Login failed: Invalid response'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return false;
       }
-    } else if (response.body.isNotEmpty && jsonDecode(response.body) == "Error 403") {
-      snackbarKey.currentState?.showSnackBar(
-        SnackBar(
-          content: Text(
-              'Received 403, attempting retry ${retryCount + 1} of $maxRetries'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return login(email, password, isLogin, url, retryCount: retryCount + 1);
     } else {
       snackbarKey.currentState?.showSnackBar(
         SnackBar(
-          content: Text('Failed to login: ${response.reasonPhrase} ${response.statusCode}'),
+          content: Text('Failed to login: ${response.reasonPhrase}'),
           backgroundColor: Colors.red,
         ),
       );
-      return true;
-      // debug false
+      return false;
     }
   } catch (error) {
     snackbarKey.currentState?.showSnackBar(
       SnackBar(
-        content: Text('$error'),
+        content: Text('Error in login: $error'),
         backgroundColor: Colors.red,
       ),
     );
-    return true;
-    // debug false
+    return false;
   }
-  return false;
-}
-
-Future<void> setChat(String token, String cookie) async {
-  await chat(token, cookie);
 }

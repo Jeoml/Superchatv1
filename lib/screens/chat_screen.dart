@@ -257,9 +257,10 @@ class _ChatScreenState extends State<ChatScreen> {
         _handleAuthError();
         return;
       }
+      request.fields['question'] = _controller.text.trim(); // Add question field
       request.files.add(
         http.MultipartFile(
-          'files',
+          'file', // Use 'file' as the field name
           Stream.value(bytes),
           bytes.length,
           filename: file.name,
@@ -418,6 +419,7 @@ class _ChatScreenState extends State<ChatScreen> {
       print('Debug: Error type: ${e.runtimeType}');
       print('Debug: Error message: $e');
       print('Debug: StackTrace: $stackTrace');
+      print('Debug: Request body - token: $token');
       
       // Handle error - remove typing indicator and show error message
       if (mounted) {

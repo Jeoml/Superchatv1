@@ -10,8 +10,8 @@ class AuthService {
   Future<bool> authenticate(String email, String password, bool isLogin) async {
     final url = isLogin ? dotenv.env['LOGIN_API_URL']! : dotenv.env['SIGNUP_API_URL']!;
     try {
-      if(isLogin) return login(email, password, isLogin, url);
-      return signup(email, password, isLogin, url);
+      if (isLogin) return await login(email, password, url);
+      return await signup(email, password, url);
     } catch (e) {
       print('Error in authenticate: $e');
       rethrow;

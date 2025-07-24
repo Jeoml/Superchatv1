@@ -31,18 +31,22 @@ class ChatManager {
           throw Exception('Invalid endpoint');
       }
 
+      final headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': 'Bearer $token', // <--- TOKEN IS SENT HERE
+        // 'Cookie': cookie, // Uncomment if needed
+      };
       print('Debug: Making request to URL - $url');
-      print('Debug: Request headers - Token: ${token.substring(0, 10)}... Cookie: ${cookie.substring(0, 10)}...');
+      print('Debug: Request headers - Token: \'${token.substring(0, 10)}...\'');
+      print('Debug: Request headers full - \'${headers.toString()}\'');
       print('Debug: Request body - Text: $text');
+      print('Debug: Request body - Session ID: ${Uuid().v4()}');
+      print('Debug: Request body - token: $token');
 
       // FIXED: Use http.post directly instead of client.send
       final response = await http.post(
         Uri.parse(url),
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': 'Bearer $token',
-          // 'Cookie': cookie, // Uncomment if needed
-        },
+        headers: headers,
         body: {
           'message': text,
           'session_id': Uuid().v4(),

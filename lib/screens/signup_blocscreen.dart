@@ -4,7 +4,7 @@ import 'package:learnings1/blocs/signup_bloc/signup_bloc.dart';
 import 'package:learnings1/blocs/signup_bloc/signup_event.dart';
 import 'package:learnings1/blocs/signup_bloc/signup_state.dart';
 import 'package:learnings1/screens/login_blocscreen.dart';
-// import '../screens/chat_screen.dart';
+import 'package:learnings1/screens/chat_screen.dart';
 
 class SignupScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
@@ -23,7 +23,15 @@ class SignupScreen extends StatelessWidget {
           // Main content with BlocConsumer
           BlocConsumer<SignupBloc, SignupState>(
             listener: (context, state) {
-              if (state is SignupSuccess) {
+              if (state is SignupAndLoginSuccess) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => ChatScreen()),
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Signup and login successful! Welcome to Superchat!", style: TextStyle(color: Colors.black)), backgroundColor: Colors.greenAccent),
+                );
+              } else if (state is SignupSuccess) {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (_) => LoginScreen()),
